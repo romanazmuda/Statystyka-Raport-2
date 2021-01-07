@@ -1,0 +1,218 @@
+---
+title: "Raport 2 - "
+author: "Romana Żmuda"
+date: "15 04 2020"
+output: pdf_document
+---
+# Zadanie 1 
+```{r include = FALSE}
+knitr::opts_chunk$set(echo=FALSE)
+library(readxl)
+library(knitr)
+library(dplyr)
+library(EnvStats)
+
+```
+
+
+Wgranie danych do środowiska: 
+```{r, echo=TRUE}
+dane <- read_excel("rozklady.xlsx")
+attach(dane)
+```
+
+Po wstępnej analizie histogramów odpowiednich prób X1, X2, X3, X4, X5 możemy na podstawie porównania wykresów gęstości odpowiednich rozkładów zauważamy, że X1 oraz X2 mają rozkład przybliżony do rozkładu normalnego, a więc ich paramentry to wartość oczekiwana oraz odchylenie standardowe. Natomiast próby X3, X4 oraz X5 mają rozkład gamma, więc ich parametry to parametry kształtu i scali. Na odpowiednich wykresach zamieściłam histogramy odpowiedniej próby wraz z ich dopasowanymi gęstościami dopasowanych rozkładów. Poniżej każdego z tych wykresów znajdują się odpowiednie wartości estymatorów.
+
+<br/>
+Zmienna X1:
+
+```{r zad1_x1, echo=TRUE}
+hist(X1,main="Rozkład X1 wraz z gęstością dopasowownego rozkładu normalnego",
+     freq = FALSE, breaks = 20)
+curve(dnorm(x,mean=mean(X1),sd=sqrt(var(X1))),add=T, col="blue")
+
+
+```
+Wbudujmy sobie funkcję wyliczjącą estymatory dla rozkladu normalnego w celu ułatwienia obliczeń: 
+
+```{r esty_norm, echo=TRUE}
+estymatory_norm <- function(x)
+{
+  Esty_sr <- mean(x)
+  Esty_var<-mean((x-Esty_sr)^2)
+  cat("estymator wartości oczekiwanej:",Esty_sr,"\nestymator wariancji:",Esty_var)
+}
+
+
+```
+
+A wartości estymatotów zmiennej X1 przyjmują odpowiednio:
+
+
+```{r esty_x1, echo=TRUE}
+estymatory_norm(X1)
+
+```
+Widać tutaj bardzo dokładnie, iż X1 ma rozkład zbliżonych ro normlanego N(0,1).
+<br/>
+
+Zmienna X2:
+```{r zad1_x2, echo=TRUE}
+hist(X2,main="Rozkład X2 wraz z gęstością dopasowownego rozkładu normalnego",freq = FALSE, breaks = 25)
+curve(dnorm(x,mean=mean(X2),sd=sqrt(var(X2))),add=T ,col="coral3")
+
+```
+
+Wartości estymatotów zmiennej X2 przyjmują odpowiednio:
+
+
+```{r esty_x2, echo=TRUE}
+estymatory_norm(X2)
+
+```
+Zmienne X3, X4, X5:
+<br/>
+Wszystkie zmienne z tej sekcji mają rozkład zbliżony do rozkładu gamma, dlatego dla ułatwienia wprowadzimy funckcję gamma, która wylicza odpowiednie wartości parametrów estymatorów oraz pozwala narysować odpowiednią gestość dopasowaną do rozkładu gamma.
+```{r zad1_gamma, echo=TRUE}
+#Funkcja liczenia estymatorów
+estymator_gamma <- function(x)
+{
+  sr <- mean(x)
+  s2<-mean((x-sr)^2)
+  Esty2<-s2/sr
+  Esty1<-sr/Esty2
+  cat("estymator wartości parametru kształtu:",Esty1,"\n estymator parametru skali:",Esty2)
+}
+#Funkcja licząca parametry gęstości
+rozklad_gamma<-function(x){
+sr<-mean(x)
+V<-var(x)
+b<-V/sr
+a<-sr/b
+return(c(a,b))
+}
+
+```
+Zmienna X3:
+
+```{r zad1_x3, echo=TRUE}
+hist(X3,main="Rozkład X3 wraz z gęstością dopasowownego rozkładu gamma",freq = FALSE, breaks = 25)
+rozklad_X3<-rozklad_gamma(X3)
+curve(dgamma(x,shape=rozklad_X3[1],scale=rozklad_X3[2]),add=T, col="chartreuse4")
+```
+Wartości estymatotów zmiennej X3 przyjmują odpowiednio:
+```{r esty_x3, echo=TRUE}
+estymator_gamma(X3)
+
+```
+Zmienna X4:
+```{r zad1_x4, echo=TRUE}
+hist(X4,main="Rozkład X4 wraz z gęstością dopasowownego rozkładu gamma",freq = FALSE, breaks = 30)
+rozklad_X4<-rozklad_gamma(X4)
+curve(dgamma(x,shape=rozklad_X4[1],scale=rozklad_X4[2]),add=T, col="darkmagenta")
+```
+Wartości estymatotów zmiennej X4 przyjmują odpowiednio:
+ 
+```{r esty_x4, echo=TRUE}
+estymator_gamma(X4)
+
+```
+Zmienna X5:
+```{r zad1_x5, echo=TRUE}
+hist(X5,main="Rozkład X5 wraz z gęstością dopasowownego rozkładu gamma",freq = FALSE, breaks = 20)
+rozklad_X5<-rozklad_gamma(X5)
+curve(dgamma(x,shape=rozklad_X5[1],scale=rozklad_X5[2]),add=T, col="deeppink3")
+```
+ Wartości estymatotów zmiennej X5 przyjmują odpowiednio:
+ 
+```{r esty_x5, echo=TRUE}
+estymator_gamma(X5)
+
+```
+ 
+# Zadanie 2
+Wygenerowanie próby rozmiaru n = 100 dla rozkładu normalnego N(1,2^2), wykładniczego E(2) i beta B(1,1). 
+
+```{r zad2_wyg, echo=TRUE}
+x<-rnorm(100,mean = 1,sd=2)
+y<-rexp(100,rate=2)
+z<-rbeta(100,1,1)
+```
+Podpunkt A: 
+<br/>
+Wykres kwantylowy próby z N(1,2^2) w porównaniu z rozkładem N(1,2^2):
+
+```{r zad2_nnn, echo=TRUE}
+qqPlot(x,distribution = "norm",param.list = list(mean=1, sd=2),add.line=T,
+main="Wykres kwantylowy próby z N(1,2^2) w porównaniu z N(1,2^2)", xlab = "N(1,2^2)", ylab ="N(1,2^2)" )
+```
+
+Wykres kwantylowy próby z E(2) w porównaniu z rozkładem N(1,2^2):
+
+```{r zad2_nne, echo=TRUE}
+qqPlot(y,distribution = "norm",param.list = list(mean=1, sd=2),add.line=T,
+main="Wykres kwantylowy próby z E(2) w porównaniu z N(1,2^2)", xlab = "N(1,2^2)", ylab ="E(2)")
+```
+
+
+Wykres kwantylowy próby z B(1,1) w porównaniu z rozkładem N(1,2^2)
+```{r zad2_nnb, echo=TRUE}
+qqPlot(z,distribution = "norm",param.list = list(mean=1, sd=2),add.line=T,
+main="Wykres kwantylowy próby z B(1,1) w porównaniu z N(1,2^2)", xlab = "N(1,2^2)", ylab ="B(1,1)")
+```
+
+Podpunkt B:
+Wykres kwantylowy próby z N(1,2^2) w porównaniu z rozkładem E(2)
+
+```{r zad2_enn, echo=TRUE}
+qqPlot(x,distribution = "exp",param.list = list(rate=2),add.line=T,
+main="Wykres kwantylowy próby z N(1,2^2) w porównaniu z E(2)", ylab = "N(1,2^2)", xlab ="E(2)")
+```
+Wykres kwantylowy próby z E(2) w porównaniu z rozkładem E(2)
+
+```{r zad2_ee, echo=TRUE}
+qqPlot(y,distribution = "exp",param.list = list(rate=2),add.line=T,
+main="Wykres kwantylowy próby z E(2) w porównaniu z E(2)", ylab = "E(2)", xlab ="E(2)")
+```
+
+
+Wykres kwantylowy próby z B(1,1) w porównaniu z rozkładem E(2)
+
+```{r zad2_eb, echo=TRUE}
+qqPlot(z,distribution = "exp",param.list = list(rate=2),add.line=T,
+main="Wykres kwantylowy próby z B(1,1) w porównaniu z E(2)", ylab = "B(1,1)", xlab ="E(2)")
+```
+
+Podpunkt C:
+
+Wykres kwantylowy próby z N(1,2^2) w porównaniu z rozkładem B(1,1)
+```{r zad2_bnn, echo=TRUE}
+qqPlot(x,distribution = "beta",param.list = list(shape1=1,shape2=1),add.line=T,
+main="Wykres kwantylowy próby z N(1,2^2) w porównaniu z B(1,1)",xlab = "B(1,1)", ylab ="N(1,2^2)")
+```
+
+Wykres kwantylowy próby z E(2) w porównaniu z rozkładem B(1,1)
+```{r zad2_be, echo=TRUE}
+qqPlot(y,distribution = "beta",param.list = list(shape1=1,shape2=1),add.line=T,
+main="Wykres kwantylowy próby z E(2) w porównaniu z B(1,1)",xlab = "B(1,1)", ylab ="E(2)")
+```
+Wykres kwantylowy próby z B(1,1) w porównaniu z rozkładem B(1,1)
+```{r zad2_bb, echo=TRUE}
+qqPlot(z,distribution = "beta",param.list = list(shape1=1,shape2=1),add.line=T,
+main="Wykres kwantylowy próby z B(1,1) w porównaniu z B(1,1)",xlab = "B(1,1)", ylab ="B(1,1)")
+```
+Wnioski: Wykresy kwantylowe badają zależność między dwoma rozkładami, tym samym dochodzimy do wniosku, że im bliżej prostej: y = x są położone kwantyle i-tego rzędu z każdego rozkładu to tym bardziej są one zgodne. Oczywiście najbardziej podobne są te same rozkłady, jednak zauważamy iż dla takiej próby rozkład normalny oraz beta są stosunkowo podobne, bliskość do prostej y = x. Największe różnice występująw przypadku badania zależności z rozkładem wykładniczym, gdyż sporo punktów jest oddalonych od osi y = x, jest to pewnie związane z szybszym wzrostem, dlatego że róznice zaczynają się od 0.8 wartości.
+
+# Zadanie 3
+Wygenerujemy cztery próby rozmiaru n = 200 z rozkładów normalnych N(0,1),N(0,2^2),N(1,1),N(1,27) oraz stowrzymy wykres 4 boxplotów, odpowiednio dla każdego rozkładu
+```{r zad3_wyg, echo=TRUE}
+x1<-rnorm(200)
+x2<-rnorm(200,sd=2)
+x3<-rnorm(200,mean=1)
+x4<-rnorm(200,mean=1,sd=27^(1/2))
+boxplot(x1,x2,x3,x4, names = c("N(0,1)","N(0,2^2)","N(1,1)","N(1,27)"))
+summary(x1) #odczytanie mediany, 1 i 3 kwartyla z próby rozkładu N(0,1)
+```
+Wnioski: Wartość mediany rozkładu N(0,1) w próbie jest bardzo blisko 0. Kwantyle również oscylują wokół wartości z rozkładu normalnego, jednak tu już różnice są bardziej znaczące. Widzimy, iż im większa wariancja tylko większy rozrzut występuje między skrajnymi wartościami.A samo powiększanie wartości odpowiednich kwantyli jest proporcjonalne do odchylenia standardowego.
+
+
